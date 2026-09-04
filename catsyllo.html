@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Syllogism Validity - Venn Diagrams</title>
+    <style>
+        :root {
+            --ink: #000;
+            --red: #d00;
+            --gray: #999;
+            --green: #20af00;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background: #fff;
+            margin: 0;
+            padding: 28px 22px 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: normal;
+            margin: 0 0 4px;
+        }
+
+        .sub {
+            font-size: 13px;
+            color: #444;
+            margin: 0 0 18px;
+        }
+
+        .key {
+            border: 1px solid #000;
+            padding: 10px 14px;
+            font-size: 13px;
+            max-width: 720px;
+            margin: 0 0 22px;
+            line-height: 1.6;
+        }
+
+        .key b {
+            font-weight: bold;
+        }
+
+        .swatch-shade {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            vertical-align: -3px;
+            border: 1px solid #000;
+            margin: 0 4px;
+            background-image: repeating-linear-gradient(45deg, #fff 0 3px, #999 3px 5px);
+        }
+
+        .swatch-x {
+            font-weight: bold;
+            font-size: 15px;
+            margin: 0 4px;
+        }
+
+        .controls {
+            max-width: 720px;
+            margin: 0 0 26px;
+        }
+
+        .line {
+            font-size: 16px;
+            margin: 9px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .line .lab {
+            width: 130px;
+            font-size: 13px;
+            color: #444;
+        }
+
+        select {
+            font-family: inherit;
+            font-size: 15px;
+            padding: 3px 6px;
+            border: 1px solid #000;
+            background: #fff;
+            border-radius: 0;
+        }
+
+        select.quant-sel {
+            width: 148px;
+        }
+
+        select.term-sel {
+            font-style: italic;
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 42px;
+            text-align: center;
+            padding: 3px 4px;
+        }
+
+        .stage {
+            display: flex;
+            align-items: flex-start;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .dwrap {
+            flex: 0 0 auto;
+            max-width: 100%;
+        }
+
+        .diagrams {
+            position: relative;
+            width: 640px;
+            height: 310px;
+            flex: 0 0 auto;
+        }
+
+        .vennwrap {
+            position: absolute;
+            top: 26px;
+            width: 300px;
+            transition: left 1s ease;
+        }
+
+        #vd1 {
+            left: 6px;
+        }
+
+        #vd2 {
+            left: 334px;
+        }
+
+        .diagrams.overlay #vd1,
+        .diagrams.overlay #vd2 {
+            left: 170px;
+        }
+
+        .cap {
+            position: absolute;
+            top: 2px;
+            width: 300px;
+            text-align: center;
+            font-size: 13px;
+            color: #444;
+            transition: opacity .4s ease;
+        }
+
+        #cap1 {
+            left: 6px;
+        }
+
+        #cap2 {
+            left: 334px;
+        }
+
+        .diagrams.overlay .cap {
+            opacity: 0;
+        }
+
+        .blurb {
+            display: none;
+            flex: 1 1 240px;
+            min-width: 240px;
+            max-width: 340px;
+            border: 1px solid #000;
+            border-left: 5px solid var(--gray);
+            padding: 12px 14px;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .blurb.valid {
+            border-left-color: var(--green);
+        }
+
+        .blurb.invalid {
+            border-left-color: var(--red);
+        }
+
+        .blurb.inconsistent {
+            border-left-style: dashed;
+            border-left-color: #000;
+        }
+
+        .btnrow {
+            max-width: 720px;
+            margin: 20px 0 0;
+        }
+
+        button {
+            font-family: inherit;
+            font-size: 15px;
+            padding: 9px 20px;
+            border: 1px solid #000;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 0;
+        }
+
+        button:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .credit-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 8px 16px;
+            font-size: 13px;
+            color: #444;
+            background: #f8f8f8;
+            border-top: 1px solid #ddd;
+            z-index: 100;
+        }
+
+        .credit-bar a.github-link {
+            display: inline-flex;
+            align-items: center;
+            color: #000;
+            transition: opacity .2s ease;
+        }
+
+        .credit-bar a.github-link:hover {
+            opacity: .55;
+        }
+
+        .credit-bar a.github-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @media (max-width:720px) {
+            body {
+                padding: 20px 14px 48px;
+            }
+
+            .dwrap {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .blurb {
+                max-width: none;
+            }
+
+            .line .lab {
+                width: auto;
+                flex: 0 0 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Categorical Syllogism Checker</h1>
+    <p class="sub">Choose the quantifier and terms for each proposition. Each premise edits its own diagram; press
+        <i>Check for validity</i> to overlay them.
+    </p>
+
+    <div class="key">
+        <b>Key.</b>
+        <span class="swatch-shade"></span> Shading = nothing can be in that section (necessarily empty).
+        &nbsp;&nbsp;
+        <span class="swatch-x">✕</span> = something exists in that section.
+        <br>
+    </div>
+
+    <div class="controls">
+        <div class="line"><span class="lab">Premise 1:</span>
+            <select id="sel1" class="quant-sel"></select>
+            <select id="subj1" class="term-sel"></select>
+            <span id="cop1">are</span>
+            <select id="pred1" class="term-sel"></select>
+        </div>
+        <div class="line"><span class="lab">Premise 2:</span>
+            <select id="sel2" class="quant-sel"></select>
+            <select id="subj2" class="term-sel"></select>
+            <span id="cop2">are</span>
+            <select id="pred2" class="term-sel"></select>
+        </div>
+        <div class="line"><span class="lab">Conclusion:</span>
+            <select id="sel3" class="quant-sel"></select>
+            <select id="subj3" class="term-sel"></select>
+            <span id="cop3">are</span>
+            <select id="pred3" class="term-sel"></select>
+        </div>
+    </div>
+
+    <div class="stage">
+        <div class="dwrap">
+            <div class="diagrams" id="diagrams">
+                <div class="cap" id="cap1">Premise 1</div>
+                <div class="cap" id="cap2">Premise 2</div>
+                <div class="vennwrap" id="vd1"></div>
+                <div class="vennwrap" id="vd2"></div>
+            </div>
+        </div>
+        <div class="blurb" id="blurb"></div>
+    </div>
+
+    <div class="btnrow">
+        <button id="checkBtn">Check for validity</button>
+    </div>
+
+    <script>
+        /* ---------- geometry ---------- */
+        const C = { X: [110, 115], Y: [190, 115], Z: [150, 185] };
+        const R = 75;
+
+        /* section numbering (identical relative positions in both diagrams)
+           1 = X only            2 = Y only            3 = Z only
+           4 = X∩Y (not Z)       5 = X∩Z (not Y)       6 = Y∩Z (not X)
+           7 = X∩Y∩Z (center)
+           The region outside all three circles is never labelled or shaded: no
+           categorical proposition over X, Y, Z can constrain it.               */
+        const numPos = {
+            1: [78, 106], 2: [222, 106], 3: [150, 224], 4: [150, 90],
+            5: [116, 166], 6: [184, 166], 7: [150, 138]
+        };
+
+        /* ---------- section membership ---------- */
+        const IN = {
+            X: new Set([1, 4, 5, 7]),
+            Y: new Set([2, 4, 6, 7]),
+            Z: new Set([3, 5, 6, 7])
+        };
+        const ALL_SEC = [1, 2, 3, 4, 5, 6, 7];
+
+        /**
+         * Return section numbers inside every circle in `inc` and outside every circle in `exc`.
+         * e.g. getSections(['X'], ['Y']) → [1, 5]  (X ∩ ¬Y)
+         */
+        function getSections(inc, exc) {
+            return ALL_SEC.filter(s =>
+                inc.every(c => IN[c].has(s)) &&
+                exc.every(c => !IN[c].has(s))
+            );
+        }
+
+        /* ✕ placement positions: for each pair of candidate sections the ✕ sits
+           on the boundary of the third circle, midway through the relevant arc.
+           Keyed by "min,max" of the two section numbers.
+    
+           Computed from arc-midpoint geometry:
+           - On Z boundary (center 150,185): arcs inside X∩Y, X∩¬Y, Y∩¬X
+           - On X boundary (center 110,115): arcs inside Y∩Z, Z∩¬Y, Y∩¬Z
+           - On Y boundary (center 190,115): arcs inside X∩Z, X∩¬Z, Z∩¬X   */
+        const XMARK_POS = {
+            '1,4': [120, 89],    // Y boundary, inside X, outside Z
+            '1,5': [86, 148],    // Z boundary, inside X, outside Y
+            '2,4': [180, 89],    // X boundary, inside Y, outside Z
+            '2,6': [214, 148],   // Z boundary, inside Y, outside X
+            '3,5': [113, 190],   // X boundary, inside Z, outside Y
+            '3,6': [187, 190],   // Y boundary, inside Z, outside X
+            '4,7': [150, 110],   // Z boundary, inside X∩Y
+            '5,7': [120, 141],   // Y boundary, inside X∩Z
+            '6,7': [180, 141]    // X boundary, inside Y∩Z
+        };
+
+        function xKey(a, b) { return (a < b ? a + ',' + b : b + ',' + a); }
+
+        /* ---------- build a venn svg ---------- */
+        function buildVenn(p) {
+            const circ = c => `<circle cx="${C[c][0]}" cy="${C[c][1]}" r="${R}"`;
+
+            let defs = `<pattern id="${p}hatch" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">`
+                + `<rect width="7" height="7" fill="#fff"/>`
+                + `<line x1="0" y1="0" x2="0" y2="7" stroke="#999" stroke-width="3"/></pattern>`;
+
+            ['X', 'Y', 'Z'].forEach(c => { defs += `<clipPath id="${p}clip${c}">${circ(c)}/></clipPath>`; });
+
+            const regions = [
+                { n: 1, in: ['X'], out: ['Y', 'Z'] },
+                { n: 2, in: ['Y'], out: ['X', 'Z'] },
+                { n: 3, in: ['Z'], out: ['X', 'Y'] },
+                { n: 4, in: ['X', 'Y'], out: ['Z'] },
+                { n: 5, in: ['X', 'Z'], out: ['Y'] },
+                { n: 6, in: ['Y', 'Z'], out: ['X'] },
+                { n: 7, in: ['X', 'Y', 'Z'], out: [] }
+            ];
+
+            regions.forEach(r => {
+                if (r.out.length) {
+                    defs += `<mask id="${p}mask${r.n}"><rect width="300" height="280" fill="white"/>`
+                        + r.out.map(o => `${circ(o)} fill="black"/>`).join('') + `</mask>`;
+                }
+            });
+
+            let shapes = '';
+            regions.forEach(r => {
+                const open = r.in.map(c => `<g clip-path="url(#${p}clip${c})">`).join('');
+                const close = '</g>'.repeat(r.in.length);
+                const mask = r.out.length ? ` mask="url(#${p}mask${r.n})"` : '';
+                shapes += `<g id="${p}shade${r.n}" style="display:none">${open}`
+                    + `<rect width="300" height="280" fill="url(#${p}hatch)"${mask}/>${close}</g>`;
+            });
+
+            const circles = ['X', 'Y', 'Z'].map(c => `${circ(c)} fill="none" stroke="#000" stroke-width="1.6"/>`).join('');
+
+            const setLabels = `<text x="35" y="71" font-size="17" font-style="italic" text-anchor="middle" dominant-baseline="central">X</text>`
+                + `<text x="265" y="71" font-size="17" font-style="italic" text-anchor="middle" dominant-baseline="central">Y</text>`
+                + `<text x="150" y="272" font-size="17" font-style="italic" text-anchor="middle" dominant-baseline="central">Z</text>`;
+
+            let nums = '';
+            for (let i = 1; i <= 7; i++) {
+                nums += `<text id="${p}num${i}" x="${numPos[i][0]}" y="${numPos[i][1]}" font-size="13" `
+                    + `text-anchor="middle" dominant-baseline="central" fill="#000">${i}</text>`;
+            }
+
+            const xmark = `<text id="${p}xmark" font-size="20" font-weight="bold" text-anchor="middle" `
+                + `dominant-baseline="central" fill="#000" `
+                + `style="display:none;transition:transform .8s ease;transform:translate(0px,0px)">✕</text>`;
+
+            return `<svg viewBox="0 0 300 280" width="300" height="280"><defs>${defs}</defs>`
+                + `${shapes}${circles}${setLabels}${nums}${xmark}</svg>`;
+        }
+
+        document.getElementById('vd1').innerHTML = buildVenn('a');
+        document.getElementById('vd2').innerHTML = buildVenn('b');
+
+        /* ---------- dropdowns ----------
+           `t`     – short text, shown once the option is chosen (the select is
+                     sitting inside a sentence, so it has to stay terse).
+           `open`  – longer text, shown only while the list is dropped down, where
+                     there is room to spell out which "Some" is which.
+           A native <select> cannot show two different strings for the same option,
+           so the option text is rewritten on open and put back on close. The "not"
+           itself is never part of the option text - it is supplied by the copula
+           between the two term dropdowns                        */
+        const QUANT_OPTS = [
+            { v: '', t: 'Select...' },
+            { v: 'all', t: 'All (A)' },
+            { v: 'no', t: 'No (E)' },
+            { v: 'some', t: 'Some (I)' },
+            { v: 'somenot', t: 'Some (O)', open: 'Some … not (O)' }
+        ];
+        const TERMS = ['X', 'Y', 'Z'];
+
+        ['sel1', 'sel2', 'sel3'].forEach(id => {
+            document.getElementById(id).innerHTML =
+                QUANT_OPTS.map(o => `<option value="${o.v}">${o.t}</option>`).join('');
+        });
+
+        /* swap between the two label sets */
+        function setQuantLabels(sel, dropped) {
+            QUANT_OPTS.forEach((o, i) => {
+                const opt = sel.options[i];
+                if (opt) opt.textContent = (dropped && o.open) ? o.open : o.t;
+            });
+        }
+        /* Only the events that actually drop the list expand the labels, a select
+           that is focused, or arrow-keyed while closed, keeps the short
+           text. mousedown and touchstart both fire before the popup paints. */
+        const OPEN_KEYS = ['Enter', ' ', 'Spacebar', 'F4', 'ArrowDown', 'Down'];
+        ['sel1', 'sel2', 'sel3'].forEach(id => {
+            const sel = document.getElementById(id);
+            ['mousedown', 'touchstart'].forEach(ev =>
+                sel.addEventListener(ev, () => setQuantLabels(sel, true)));
+            sel.addEventListener('keydown', e => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'F4'
+                    || (e.altKey && OPEN_KEYS.includes(e.key))) setQuantLabels(sel, true);
+            });
+            /* change fires when the popup closes on a pick, blur covers Esc and
+               click-away, where no change event is sent. */
+            ['change', 'blur'].forEach(ev =>
+                sel.addEventListener(ev, () => setQuantLabels(sel, false)));
+        });
+        ['subj1', 'pred1', 'subj2', 'pred2', 'subj3', 'pred3'].forEach(id => {
+            document.getElementById(id).innerHTML =
+                TERMS.map(t => `<option value="${t}">${t}</option>`).join('');
+        });
+
+        /* Default term assignments: Figure 1 (X–Y, Y–Z, X–Z) */
+        document.getElementById('subj1').value = 'X';
+        document.getElementById('pred1').value = 'Y';
+        document.getElementById('subj2').value = 'Y';
+        document.getElementById('pred2').value = 'Z';
+        document.getElementById('subj3').value = 'X';
+        document.getElementById('pred3').value = 'Z';
+
+        /* ---------- state ---------- */
+        const state = { vd1: { shade: [], x: null }, vd2: { shade: [], x: null }, conc: '' };
+        let t1 = null, t2 = null;
+
+        const sel1 = document.getElementById('sel1'),
+            sel2 = document.getElementById('sel2'),
+            sel3 = document.getElementById('sel3'),
+            subj1 = document.getElementById('subj1'),
+            pred1 = document.getElementById('pred1'),
+            subj2 = document.getElementById('subj2'),
+            pred2 = document.getElementById('pred2'),
+            subj3 = document.getElementById('subj3'),
+            pred3 = document.getElementById('pred3'),
+            cap1 = document.getElementById('cap1'),
+            cap2 = document.getElementById('cap2'),
+            diagrams = document.getElementById('diagrams'),
+            blurb = document.getElementById('blurb');
+
+        /* ---------- diagram editing ---------- */
+        function clearVD(p) {
+            for (let i = 1; i <= 7; i++) document.getElementById(p + 'shade' + i).style.display = 'none';
+            const x = document.getElementById(p + 'xmark'); x.style.display = 'none';
+        }
+        function shadeVD(p, list) { list.forEach(i => document.getElementById(p + 'shade' + i).style.display = 'block'); }
+        function placeX(el, pos) { el.style.transform = `translate(${pos[0]}px,${pos[1]}px)`; }
+        function setX(p, pos) {
+            const x = document.getElementById(p + 'xmark');
+            x.style.display = '';
+            placeX(x, pos);
+        }
+
+        /* ---------- apply a proposition to a diagram ---------- */
+        /**
+         * Compute and render the diagram effect for a single proposition
+         *   prefix  – SVG id prefix ('a' or 'b')
+         *   stObj   – state.vd1 or state.vd2
+         *   quant   – 'all' | 'no' | 'some' | 'somenot' | ''
+         *   subj    – 'X' | 'Y' | 'Z'
+         *   pred    – 'X' | 'Y' | 'Z'
+         */
+        function applyPremise(prefix, stObj, quant, subj, pred) {
+            clearVD(prefix);
+            stObj.shade = [];
+            stObj.x = null;
+
+            if (!quant || subj === pred) return;
+
+            if (quant === 'all') {
+                /* All S are P  →  shade S ∩ ¬P  (nothing in S can be outside P) */
+                const secs = getSections([subj], [pred]);
+                shadeVD(prefix, secs);
+                stObj.shade = secs;
+            } else if (quant === 'no') {
+                /* No S are P  →  shade S ∩ P  (nothing can be in both) */
+                const secs = getSections([subj, pred], []);
+                shadeVD(prefix, secs);
+                stObj.shade = secs;
+            } else if (quant === 'some') {
+                /* Some S are P  →  ✕ in S ∩ P, straddling the third circle's boundary */
+                const secs = getSections([subj, pred], []);
+                const pos = XMARK_POS[xKey(secs[0], secs[1])];
+                setX(prefix, pos);
+                stObj.x = { pos, secA: secs[0], secB: secs[1] };
+            } else if (quant === 'somenot') {
+                /* Some S are not P  →  ✕ in S ∩ ¬P, straddling the third circle's boundary */
+                const secs = getSections([subj], [pred]);
+                const pos = XMARK_POS[xKey(secs[0], secs[1])];
+                setX(prefix, pos);
+                stObj.x = { pos, secA: secs[0], secB: secs[1] };
+            }
+        }
+
+        function updateCop(i, val) {
+            document.getElementById('cop' + i).textContent = (val === 'somenot') ? 'are not' : 'are';
+        }
+
+        function updateCaptions() {
+            cap1.innerHTML = `Premise 1 &nbsp;(${subj1.value}&ndash;${pred1.value})`;
+            cap2.innerHTML = `Premise 2 &nbsp;(${subj2.value}&ndash;${pred2.value})`;
+        }
+        updateCaptions();
+
+        /* ---------- reset overlay view ---------- */
+        function clearRed() {
+            ['a', 'b'].forEach(p => { for (let i = 1; i <= 7; i++) { const e = document.getElementById(p + 'num' + i); if (e) e.setAttribute('fill', '#000'); } });
+        }
+        function resetView() {
+            clearTimeout(t1); clearTimeout(t2);
+            diagrams.classList.remove('overlay');
+            clearRed();
+            ['a', 'b'].forEach(p => {
+                const st = p === 'a' ? state.vd1 : state.vd2;
+                const el = document.getElementById(p + 'xmark');
+                if (st.x) placeX(el, st.x.pos);
+            });
+            blurb.style.display = 'none';
+            setBtnMode('check');
+        }
+
+        /* Check button doubles as a Restart button after the animation */
+        const checkBtn = document.getElementById('checkBtn');
+        function setBtnMode(mode) {
+            checkBtn.dataset.mode = mode;
+            checkBtn.textContent = (mode === 'restart') ? 'Restart' : 'Check for validity';
+        }
+
+        /* ---------- validity engine ---------- */
+        function ucfirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        function evaluate() {
+            const shaded = new Set([...state.vd1.shade, ...state.vd2.shade]);
+            const marks = [];
+            if (state.vd1.x) marks.push(Object.assign({ p: 'a' }, state.vd1.x));
+            if (state.vd2.x) marks.push(Object.assign({ p: 'b' }, state.vd2.x));
+
+            /* overlay caveat: an ✕ on a line between shaded & unshaded moves to the unshaded side */
+            let inconsistent = false;
+            marks.forEach(m => {
+                const sa = shaded.has(m.secA), sb = shaded.has(m.secB);
+                if (sa && sb) { m.settled = null; m.amb = false; m.contradicted = true; inconsistent = true; }
+                else if (sa) { m.settled = m.secB; }
+                else if (sb) { m.settled = m.secA; }
+                else { m.settled = null; m.amb = true; m.candidates = [m.secA, m.secB]; }
+            });
+
+            const moves = marks.filter(m => m.settled != null || m.contradicted)
+                .map(m => {
+                    const sec = m.settled != null ? m.settled : m.secA;
+                    return { p: m.p, target: [numPos[sec][0], numPos[sec][1] + 14] };
+                });
+
+            const c = state.conc;
+            const cS = subj3.value, cP = pred3.value;
+
+            if (inconsistent) {
+                const bad = [];
+                marks.forEach(m => { if (m.contradicted) bad.push(m.secA, m.secB); });
+                return {
+                    valid: true, cls: 'inconsistent', red: [...new Set(bad)], moves,
+                    blurb: 'The premises contradict each other. One premise puts an ✕ in a region the other shades empty, so no situation satisfies them both. Everything follows from a contradiction, so this counts as <b>VALID</b>, but the argument is worthless: check whether you meant to enter these premises.'
+                };
+            }
+
+            /* universal conclusion: it prohibits certain sections (they must be shaded empty) */
+            if (c === 'all' || c === 'no') {
+                const prohibited = (c === 'all')
+                    ? getSections([cS], [cP])         // All S are P → S∩¬P must be empty
+                    : getSections([cS, cP], []);      // No S are P → S∩P must be empty
+                const red = []; const clauses = [];
+                prohibited.forEach(s => {
+                    if (!shaded.has(s)) {
+                        red.push(s);
+                        const definite = marks.some(m => m.settled === s);
+                        const possible = marks.some(m => m.amb && m.candidates.includes(s));
+                        if (definite) clauses.push(`the conclusion requires section ${s} to be empty, but the premises put an ✕ there`);
+                        else if (possible) clauses.push(`the conclusion requires section ${s} to be empty, but the premises leave open that their ✕ falls there`);
+                        else clauses.push(`the conclusion requires section ${s} to be empty, but the premises do not shade it, so something may be there`);
+                    }
+                });
+                if (red.length === 0)
+                    return {
+                        valid: true, red: [], moves,
+                        blurb: 'Every section the conclusion requires to be empty is already shaded by the premises (they may shade more besides). Premises entail conclusion, therefore <b>VALID</b>.'
+                    };
+                return { valid: false, red, moves, blurb: ucfirst(clauses.join('; ')) + ', therefore <b>INVALID</b>.' };
+            }
+
+            /* existential conclusion: it REQUIRES an ✕ somewhere in a region */
+            const required = (c === 'some')
+                ? getSections([cS, cP], [])         // Some S are P → need ✕ in S∩P
+                : getSections([cS], [cP]);          // Some S not P → need ✕ in S∩¬P
+            const forced = marks.some(m =>
+                (m.settled != null && required.includes(m.settled)) ||
+                (m.amb && m.candidates.every(x => required.includes(x)))
+            );
+            if (forced)
+                return {
+                    valid: true, red: [], moves,
+                    blurb: 'The premises place a required ✕ inside the region the conclusion demands. Premises entail conclusion, therefore <b>VALID</b>.'
+                };
+            const open = required.filter(s => !shaded.has(s));
+            const where = `section ${required.join(' or ')}`;
+
+            /* (a) every section the conclusion needs is shaded empty: the premises do
+                   not merely fail to support the conclusion, they rule it out.      */
+            if (open.length === 0)
+                return {
+                    valid: false, red: required, moves,
+                    blurb: `The conclusion requires an ✕ in ${where}, but the premises shade every one of those sections empty. The premises do not just fail to support the conclusion. They contradict it, therefore <b>INVALID</b>.`
+                };
+
+            /* (b) no ✕ anywhere: both premises are universal, so nothing exists.    */
+            if (marks.length === 0)
+                return {
+                    valid: false, red: open, moves,
+                    blurb: `Both premises are universal, so they only declare sections empty and never assert that anything exists. The conclusion requires an ✕ in ${where}, so <b>INVALID</b>. This is the existential fallacy. (On the traditional interpretation, which assumes the terms are non-empty, this form would be conditionally valid.)`
+                };
+
+            /* (c) an ✕ exists but is not pinned inside the required region.         */
+            return {
+                valid: false, red: open, moves,
+                blurb: `The conclusion requires an ✕ in ${where}, but the premises never force an ✕ into that region. The ✕ they do give is free to sit outside it, therefore <b>INVALID</b>.`
+            };
+        }
+
+        /* ---------- structural check: is this actually a syllogism? ----------
+           A categorical syllogism needs exactly three terms, where the middle
+           term M appears once in each premise and never in the conclusion, and
+           the conclusion's subject (minor, S) and predicate (major, P) each
+           appear in exactly one premise - in different premises.
+           Premise ORDER is not checked: putting the minor premise first is a
+           departure from standard form but has no effect on validity.          */
+        function syllogismError() {
+            const S = subj3.value, P = pred3.value;
+            const p1 = [subj1.value, pred1.value], p2 = [subj2.value, pred2.value];
+
+            if (p1[0] === p1[1]) return 'Premise 1 must relate two different terms.';
+            if (p2[0] === p2[1]) return 'Premise 2 must relate two different terms.';
+            if (S === P) return 'The conclusion must relate two different terms.';
+
+            const M = TERMS.find(t => t !== S && t !== P);
+            if (!p1.includes(M) || !p2.includes(M))
+                return `Not a syllogism: the middle term ${M} (the term absent from the conclusion) must appear in both premises. `
+                    + `Here it is missing from premise ${p1.includes(M) ? '2' : '1'}.`;
+
+            const o1 = p1.find(t => t !== M), o2 = p2.find(t => t !== M);
+            if (o1 === o2)
+                return `Not a syllogism: ${o1} appears in both premises alongside ${M}, so ${o1 === S ? P : S} never appears in a premise. `
+                    + `Each premise must pair the middle term with a different one of the conclusion's two terms.`;
+
+            return null;
+        }
+
+        function setRed(s) { ['a', 'b'].forEach(p => { const e = document.getElementById(p + 'num' + s); if (e) e.setAttribute('fill', '#d00'); }); }
+
+        /* ---------- check button ---------- */
+        function check() {
+            if (!sel1.value || !sel2.value || !sel3.value) {
+                blurb.className = 'blurb'; blurb.textContent = 'Please select a quantifier for all three lines.';
+                blurb.style.display = 'block'; return;
+            }
+            const formErr = syllogismError();
+            if (formErr) {
+                blurb.className = 'blurb'; blurb.textContent = formErr;
+                blurb.style.display = 'block'; return;
+            }
+
+            state.conc = sel3.value;
+            const res = evaluate();
+
+            diagrams.classList.add('overlay');          // step 1: horizontal travel + overlay
+            clearTimeout(t1); clearTimeout(t2);
+
+            t1 = setTimeout(() => {                        // step 2: shift any ✕ off a line into the unshaded section
+                res.moves.forEach(m => {
+                    const el = document.getElementById(m.p + 'xmark');
+                    placeX(el, m.target);
+                });
+            }, 1050);
+
+            t2 = setTimeout(() => {                        // reveal verdict
+                res.red.forEach(setRed);
+                blurb.className = 'blurb ' + (res.cls || (res.valid ? 'valid' : 'invalid'));
+                blurb.innerHTML = res.blurb;
+                blurb.style.display = 'block';
+                setBtnMode('restart');
+            }, 1900);
+        }
+
+        /* Restart: clear quantifier selections, diagrams, and verdict (terms are kept) */
+        function restart() {
+            resetView();
+            ['1', '2', '3'].forEach(i => { document.getElementById('sel' + i).value = ''; updateCop(i, ''); });
+            clearVD('a'); clearVD('b');
+            state.vd1 = { shade: [], x: null }; state.vd2 = { shade: [], x: null }; state.conc = '';
+        }
+
+        /* ---------- wiring ---------- */
+        function onPremise1Change() {
+            resetView();
+            updateCop(1, sel1.value);
+            applyPremise('a', state.vd1, sel1.value, subj1.value, pred1.value);
+            updateCaptions();
+        }
+        function onPremise2Change() {
+            resetView();
+            updateCop(2, sel2.value);
+            applyPremise('b', state.vd2, sel2.value, subj2.value, pred2.value);
+            updateCaptions();
+        }
+        function onConclusionChange() {
+            resetView();
+            updateCop(3, sel3.value);
+            state.conc = sel3.value;
+        }
+
+        sel1.addEventListener('change', onPremise1Change);
+        subj1.addEventListener('change', onPremise1Change);
+        pred1.addEventListener('change', onPremise1Change);
+
+        sel2.addEventListener('change', onPremise2Change);
+        subj2.addEventListener('change', onPremise2Change);
+        pred2.addEventListener('change', onPremise2Change);
+
+        sel3.addEventListener('change', onConclusionChange);
+        subj3.addEventListener('change', onConclusionChange);
+        pred3.addEventListener('change', onConclusionChange);
+
+        checkBtn.addEventListener('click', () => { (checkBtn.dataset.mode === 'restart') ? restart() : check(); });
+    </script>
+
+    <footer class="credit-bar">
+        <span>Built by Matei Stoica - RPI '28</span>
+        <a class="github-link" href="https://github.com/matei0906" target="_blank" rel="noopener noreferrer"
+            aria-label="GitHub">
+            <svg viewBox="0 0 16 16" fill="currentColor">
+                <path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.64 7.64 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+            </svg>
+        </a>
+    </footer>
+</body>
+
+</html>
